@@ -14,6 +14,7 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchVersionInterface;
 use Magento\Framework\Setup\SampleData\Executor;
 use SoftCommerce\GraphCommerceCmsSampleData\Setup\Installer;
+use SoftCommerce\GraphCommerceCmsSampleData\Setup\Patch\Schema\InstallSampleStores;
 
 /**
  * Class InstallCmsPageSampleData
@@ -57,6 +58,7 @@ class InstallCmsPageSampleData implements DataPatchInterface, PatchVersionInterf
     public static function getDependencies(): array
     {
         return [
+            InstallSampleStores::class,
             InstallCmsSampleData::class
         ];
     }

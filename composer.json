@@ -5,6 +5,7 @@
         "php": "~8.0.0||~8.1.0||~8.2.0||~8.3.0",
         "magento/module-sample-data": "^100.4",
         "magento/module-catalog-sample-data": "^100.4",
+        "magento/module-cms-sample-data": "^100.4",
         "softcommerce/module-graphcommerce-cms": "*",
         "softcommerce/graphcommerce-cms-sample-data-media": "*"
     },
@@ -21,5 +22,5 @@
             "SoftCommerce\\GraphCommerceCmsSampleData\\": ""
         }
     },
-    "version": "1.0.0"
+    "version": "1.0.1"
 }

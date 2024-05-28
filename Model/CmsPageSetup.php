@@ -16,28 +16,16 @@ use Magento\Cms\Model\ResourceModel\Page\CollectionFactory;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\File\Csv;
 use Magento\Framework\Setup\SampleData\Context;
-use Magento\Framework\Setup\SampleData\FixtureManager;
-use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
+use function array_combine;
 use function array_shift;
 use function current;
 use function file_exists;
 use function trim;
 
-class CmsPage
+class CmsPageSetup extends AbstractModel
 {
-    /**
-     * @var Csv
-     */
-    private Csv $csvReader;
-
-    /**
-     * @var FixtureManager
-     */
-    private FixtureManager $fixtureManager;
-
     /**
      * @var Collection
      */
@@ -54,40 +42,28 @@ class CmsPage
     private ResourcePage $resource;
 
     /**
-     * @var StoreManagerInterface
-     */
-    private StoreManagerInterface $storeManager;
-
-    /**
      * @var array|null
      */
     private ?array $pagesInMemory = null;
 
     /**
-     * @var array
-     */
-    private array $storeCodeToId = [];
-
-    /**
-     * @param Context $context
      * @param CollectionFactory $collectionFactory
      * @param PageFactory $pageFactory
      * @param ResourcePage $resource
+     * @param Context $sampleDataContext
      * @param StoreManagerInterface $storeManager
      */
     public function __construct(
-        Context $context,
         CollectionFactory $collectionFactory,
         PageFactory $pageFactory,
         ResourcePage $resource,
+        Context $sampleDataContext,
         StoreManagerInterface $storeManager
     ) {
-        $this->csvReader = $context->getCsvReader();
-        $this->fixtureManager = $context->getFixtureManager();
         $this->collection = $collectionFactory->create();
         $this->pageFactory = $pageFactory;
         $this->resource = $resource;
-        $this->storeManager = $storeManager;
+        parent::__construct($sampleDataContext, $storeManager);
     }
 
     /**
@@ -109,11 +85,7 @@ class CmsPage
             $header = array_shift($rows);
 
             foreach ($rows as $row) {
-                $data = [];
-                foreach ($row as $key => $value) {
-                    $data[$header[$key]] = $value;
-                }
-                $row = $data;
+                $row = array_combine($header, $row);
 
                 $storeCode = $row['store_code'] ?? 'admin';
                 $storeId = $this->getStoreIdByCode($storeCode);
@@ -130,23 +102,6 @@ class CmsPage
                 $this->resource->save($page);
             }
         }
-    }
-
-    /**
-     * @param string $code
-     * @return int
-     * @throws NoSuchEntityException
-     */
-    private function getStoreIdByCode(string $code): int
-    {
-        if (!isset($this->storeCodeToId[$code])) {
-            if ($code === 'admin') {
-                $this->storeCodeToId[$code] = Store::DEFAULT_STORE_ID;
-            } else {
-                $this->storeCodeToId[$code] = $this->storeManager->getStore($code)->getId();
-            }
-        }
-        return (int) $this->storeCodeToId[$code];
     }
 
     /**

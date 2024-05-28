@@ -9,39 +9,49 @@ declare(strict_types=1);
 namespace SoftCommerce\GraphCommerceCmsSampleData\Setup;
 
 use Magento\Framework\Setup;
-use SoftCommerce\GraphCommerceCmsSampleData\Model\Category;
-use SoftCommerce\GraphCommerceCmsSampleData\Model\CmsPage;
+use SoftCommerce\GraphCommerceCmsSampleData\Model\CategorySetup;
+use SoftCommerce\GraphCommerceCmsSampleData\Model\CmsPageSetup;
+use SoftCommerce\GraphCommerceCmsSampleData\Model\MediaAssetSetup;
 
 class Installer implements Setup\SampleData\InstallerInterface
 {
     /**
-     * @var Category
+     * @var CategorySetup
      */
-    private Category $categorySetup;
+    private CategorySetup $categorySetup;
 
     /**
-     * @var CmsPage
+     * @var CmsPageSetup
      */
-    private CmsPage $cmsPage;
+    private CmsPageSetup $cmsPageSetup;
 
     /**
-     * @param Category $categorySetup
-     * @param CmsPage $cmsPage
+     * @var MediaAssetSetup
+     */
+    private MediaAssetSetup $mediaAssetSetup;
+
+    /**
+     * @param CategorySetup $categorySetup
+     * @param CmsPageSetup $cmsPageSetup
+     * @param MediaAssetSetup $mediaAssetSetup
      */
     public function __construct(
-        Category $categorySetup,
-        CmsPage $cmsPage
+        CategorySetup $categorySetup,
+        CmsPageSetup $cmsPageSetup,
+        MediaAssetSetup $mediaAssetSetup
     ) {
         $this->categorySetup = $categorySetup;
-        $this->cmsPage = $cmsPage;
+        $this->cmsPageSetup = $cmsPageSetup;
+        $this->mediaAssetSetup = $mediaAssetSetup;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    public function install()
+    public function install(): void
     {
-        $this->cmsPage->install(['SoftCommerce_GraphCommerceCmsSampleData::fixtures/cms-pages.csv']);
-        // $this->categorySetup->install(['SoftCommerce_GraphCommerceCmsSampleData::fixtures/categories.csv']);
+        $this->mediaAssetSetup->install(['SoftCommerce_GraphCommerceCmsSampleData::fixtures/media-asset.csv']);
+        $this->cmsPageSetup->install(['SoftCommerce_GraphCommerceCmsSampleData::fixtures/cms-pages.csv']);
+        $this->categorySetup->install(['SoftCommerce_GraphCommerceCmsSampleData::fixtures/categories.csv']);
     }
 }

@@ -8,18 +8,17 @@ declare(strict_types=1);
 
 namespace SoftCommerce\GraphCommerceCmsSampleData\Setup\Patch\Data;
 
+
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchVersionInterface;
 use Magento\Framework\Setup\SampleData\Executor;
-use SoftCommerce\GraphCommerceCms\Setup\Patch\Data\InstallCategoryRowContentAttribute;
 use SoftCommerce\GraphCommerceCmsSampleData\Setup\Installer;
-use SoftCommerce\GraphCommerceCmsSampleData\Setup\Patch\Schema\InstallSampleStores;
 
 /**
- * Class InstallCategorySampleData
- * used to install category sample data.
+ * Class InstallMediaAssetSampleData
+ * used to install media asset sample data.
  */
-class InstallCategorySampleData implements DataPatchInterface, PatchVersionInterface
+class InstallMediaAssetSampleData implements DataPatchInterface, PatchVersionInterface
 {
     /**
      * @var Executor
@@ -44,7 +43,7 @@ class InstallCategorySampleData implements DataPatchInterface, PatchVersionInter
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function apply(): void
     {
@@ -52,18 +51,15 @@ class InstallCategorySampleData implements DataPatchInterface, PatchVersionInter
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public static function getDependencies(): array
     {
-        return [
-            InstallSampleStores::class,
-            InstallCategoryRowContentAttribute::class
-        ];
+        return [];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public static function getVersion(): string
     {
@@ -71,7 +67,7 @@ class InstallCategorySampleData implements DataPatchInterface, PatchVersionInter
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getAliases(): array
     {
