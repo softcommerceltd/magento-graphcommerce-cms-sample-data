@@ -1,5 +1,8 @@
 ## Changelog
 
+### Version 1.0.3
+- **Enhancement**: Disallow import of CMS pages with stores don't exist.
+
 ### Version 1.0.2
 - **Fix**: Apply a fix to CMS page installer where store ID should be retrieved directly from DB during sample data installation process. [#1]
 

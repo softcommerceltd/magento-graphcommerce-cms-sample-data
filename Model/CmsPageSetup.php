@@ -74,6 +74,10 @@ class CmsPageSetup extends AbstractModel
      */
     public function install(array $fixtures): void
     {
+        $writer = new \Zend_Log_Writer_Stream(BP . '/var/log/dev.log');
+        $logger = new \Zend_Log();
+        $logger->addWriter($writer);
+
         foreach ($fixtures as $fileName) {
             $fileName = $this->fixtureManager->getFixture($fileName);
             if (!file_exists($fileName)) {
@@ -88,6 +92,11 @@ class CmsPageSetup extends AbstractModel
 
                 $storeCode = $row['store_code'] ?? 'admin';
                 $storeId = $this->getStoreIdByCode($storeCode);
+
+                if (null === $storeId) {
+                    continue;
+                }
+
                 unset($row['store_code']);
                 $identifier = trim($row['identifier']);
 
@@ -97,6 +106,12 @@ class CmsPageSetup extends AbstractModel
                 $page->addData($row);
                 $page->setCustomLayoutUpdateXml(null);
                 $page->setStores([$storeId]);
+
+                $logger->debug(print_r([
+                    '$storeId' => $storeId,
+                    '$row' => $row,
+                    'page' => $page->getData()
+                ], true), []);
 
                 $this->resource->save($page);
             }
@@ -122,7 +137,9 @@ class CmsPageSetup extends AbstractModel
             return $this->pagesInMemory[$identifier][$storeId];
         }
 
-        if (isset($this->pagesInMemory[$identifier][0])) {
+        if ($this->getDefaultStoreId() === $storeId
+            && isset($this->pagesInMemory[$identifier][0])
+        ) {
             return $this->pagesInMemory[$identifier][0];
         }
 

@@ -104,9 +104,11 @@ class CategorySetup extends AbstractModel
                 }
 
                 $storeId = $this->getStoreIdByCode($row['store_code']);
-                $categoryId = $this->getCategoryIdByUrl($row['url_key'], $storeId);
+                if (null === $storeId) {
+                    continue;
+                }
 
-                if (!$categoryId) {
+                if (!$categoryId = $this->getCategoryIdByUrl($row['url_key'], $storeId)) {
                     continue;
                 }
 

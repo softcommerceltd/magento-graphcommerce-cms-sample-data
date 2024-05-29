@@ -16,6 +16,6 @@ jobs:
           name: 1.0.2 [CE|EE|ECE 2.4.0-2.4.7] 29 May 2024
           tag_name: 1.0.2
           body: |-
-            - **Fix**: Apply a fix to CMS page installer where store ID should be retrieved directly from DB during sample data installation process. [#1]
+            - **Enhancement**: Disallow import of CMS pages with stores don't exist.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

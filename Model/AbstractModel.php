@@ -39,9 +39,14 @@ class AbstractModel
     protected StoreManagerInterface $storeManager;
 
     /**
+     * @var int|null
+     */
+    private ?int $defaultStoreId = null;
+
+    /**
      * @var array
      */
-    protected array $storeCodeToId = [];
+    private array $storeCodeToId = [];
 
     /**
      * @param ResourceConnection $resourceConnection
@@ -61,9 +66,9 @@ class AbstractModel
 
     /**
      * @param string $code
-     * @return int
+     * @return int|null
      */
-    protected function getStoreIdByCode(string $code): int
+    protected function getStoreIdByCode(string $code): ?int
     {
         if (!isset($this->storeCodeToId[$code])) {
             if (strtolower($code) === 'admin') {
@@ -72,9 +77,32 @@ class AbstractModel
                 $select = $this->connection->select()
                     ->from($this->connection->getTableName('store'), ['store_id'])
                     ->where('code = ?', $code);
-                $this->storeCodeToId[$code] = (int) $this->connection->fetchOne($select);
+                $this->storeCodeToId[$code] = $this->connection->fetchOne($select);
             }
         }
-        return $this->storeCodeToId[$code];
+        return isset($this->storeCodeToId[$code]) ? (int) $this->storeCodeToId[$code] : null;
+    }
+
+    /**
+     * @return int|null
+     */
+    protected function getDefaultStoreId(): ?int
+    {
+        if (null === $this->defaultStoreId) {
+            $select = $this->connection->select()
+                ->from(
+                    ['store' => $this->connection->getTableName('store')],
+                    'store_id'
+                )
+                ->joinLeft(
+                    ['group' => $this->connection->getTableName('store_group')],
+                    'store.store_id = group.default_store_id',
+                )
+                ->where('group.website_id = ?', 1);
+
+            $this->defaultStoreId = (int) $this->connection->fetchOne($select);
+        }
+
+        return $this->defaultStoreId;
     }
 }
