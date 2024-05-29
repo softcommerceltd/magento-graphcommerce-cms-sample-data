@@ -38,10 +38,10 @@ class InstallSampleStores implements SchemaPatchInterface, PatchVersionInterface
     public function apply(): void
     {
         $this->schemaSetup->startSetup();
-        $connection = $this->schemaSetup->getConnection();
+        // $connection = $this->schemaSetup->getConnection();
 
-        $this->handleDefaultStore($connection);
-        $this->handleSecondaryStore($connection);
+        // $this->handleDefaultStore($connection);
+        // $this->handleSecondaryStore($connection);
 
         $this->schemaSetup->endSetup();
     }
