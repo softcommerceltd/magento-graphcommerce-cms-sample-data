@@ -11,6 +11,7 @@ namespace SoftCommerce\GraphCommerceCmsSampleData\Model;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Model\ResourceModel\Category as CategoryResource;
 use Magento\CatalogUrlRewrite\Model\CategoryUrlRewriteGenerator;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Setup\SampleData\Context;
@@ -57,6 +58,7 @@ class CategorySetup extends AbstractModel
      * @param LoggerInterface $logger
      * @param UrlFinderInterface $urlFinder
      * @param WebsiteStorageInterface $websiteStorage
+     * @param ResourceConnection $resourceConnection
      * @param Context $sampleDataContext
      * @param StoreManagerInterface $storeManager
      */
@@ -66,6 +68,7 @@ class CategorySetup extends AbstractModel
         LoggerInterface $logger,
         UrlFinderInterface $urlFinder,
         WebsiteStorageInterface $websiteStorage,
+        ResourceConnection $resourceConnection,
         Context $sampleDataContext,
         StoreManagerInterface $storeManager
     ) {
@@ -74,14 +77,13 @@ class CategorySetup extends AbstractModel
         $this->logger = $logger;
         $this->urlFinder = $urlFinder;
         $this->websiteStorage = $websiteStorage;
-        parent::__construct($sampleDataContext, $storeManager);
+        parent::__construct($resourceConnection, $sampleDataContext, $storeManager);
     }
 
     /**
      * @param array $fixtures
      * @return void
      * @throws LocalizedException
-     * @throws NoSuchEntityException
      */
     public function install(array $fixtures): void
     {

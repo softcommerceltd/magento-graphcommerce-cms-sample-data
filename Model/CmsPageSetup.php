@@ -13,9 +13,7 @@ use Magento\Cms\Model\PageFactory;
 use Magento\Cms\Model\ResourceModel\Page as ResourcePage;
 use Magento\Cms\Model\ResourceModel\Page\Collection;
 use Magento\Cms\Model\ResourceModel\Page\CollectionFactory;
-use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Setup\SampleData\Context;
 use Magento\Store\Model\StoreManagerInterface;
 use function array_combine;
@@ -50,6 +48,7 @@ class CmsPageSetup extends AbstractModel
      * @param CollectionFactory $collectionFactory
      * @param PageFactory $pageFactory
      * @param ResourcePage $resource
+     * @param ResourceConnection $resourceConnection
      * @param Context $sampleDataContext
      * @param StoreManagerInterface $storeManager
      */
@@ -57,19 +56,19 @@ class CmsPageSetup extends AbstractModel
         CollectionFactory $collectionFactory,
         PageFactory $pageFactory,
         ResourcePage $resource,
+        ResourceConnection $resourceConnection,
         Context $sampleDataContext,
         StoreManagerInterface $storeManager
     ) {
         $this->collection = $collectionFactory->create();
         $this->pageFactory = $pageFactory;
         $this->resource = $resource;
-        parent::__construct($sampleDataContext, $storeManager);
+        parent::__construct($resourceConnection, $sampleDataContext, $storeManager);
     }
 
     /**
      * @param array $fixtures
      * @return void
-     * @throws NoSuchEntityException
      * @throws AlreadyExistsException
      * @throws LocalizedException
      */

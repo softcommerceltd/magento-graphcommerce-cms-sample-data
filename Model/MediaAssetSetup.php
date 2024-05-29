@@ -8,10 +8,6 @@ declare(strict_types=1);
 
 namespace SoftCommerce\GraphCommerceCmsSampleData\Model;
 
-use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\DB\Adapter\AdapterInterface;
-use Magento\Framework\Setup\SampleData\Context;
-use Magento\Store\Model\StoreManagerInterface;
 use function array_combine;
 use function array_column;
 use function array_shift;
@@ -23,25 +19,6 @@ use function file_exists;
  */
 class MediaAssetSetup extends AbstractModel
 {
-    /**
-     * @var AdapterInterface
-     */
-    private AdapterInterface $connection;
-
-    /**
-     * @param ResourceConnection $resourceConnection
-     * @param Context $sampleDataContext
-     * @param StoreManagerInterface $storeManager
-     */
-    public function __construct(
-        ResourceConnection $resourceConnection,
-        Context $sampleDataContext,
-        StoreManagerInterface $storeManager
-    ) {
-        $this->connection = $resourceConnection->getConnection();
-        parent::__construct($sampleDataContext, $storeManager);
-    }
-
     /**
      * @param array $fixtures
      * @throws \Exception
