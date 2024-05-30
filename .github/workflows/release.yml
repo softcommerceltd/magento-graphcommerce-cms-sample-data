@@ -13,9 +13,9 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          name: 1.0.3 [CE|EE|ECE 2.4.0-2.4.7] 29 May 2024
-          tag_name: 1.0.3
+          name: 1.0.4 [CE|EE|ECE 2.4.0-2.4.7] 30 May 2024
+          tag_name: 1.0.4
           body: |-
-            - **Enhancement**: Disallow import of CMS pages with stores don't exist.
+            - **Enhancement**: Add German translation for CMS Pages [#2]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

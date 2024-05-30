@@ -6,7 +6,7 @@
         "magento/module-sample-data": "^100.4",
         "magento/module-catalog-sample-data": "^100.4",
         "magento/module-cms-sample-data": "^100.4",
-        "softcommerce/module-graphcommerce-cms": "*",
+        "softcommerce/module-graphcommerce-cms": "^1.0.4",
         "softcommerce/graphcommerce-cms-sample-data-media": "*"
     },
     "type": "magento2-module",
@@ -22,5 +22,5 @@
             "SoftCommerce\\GraphCommerceCmsSampleData\\": ""
         }
     },
-    "version": "1.0.3"
+    "version": "1.0.4"
 }

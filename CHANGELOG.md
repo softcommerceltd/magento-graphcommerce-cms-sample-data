@@ -1,5 +1,8 @@
 ## Changelog
 
+### Version 1.0.4
+- **Enhancement**: Add German translation for CMS Pages [#2]
+
 ### Version 1.0.3
 - **Enhancement**: Disallow import of CMS pages with stores don't exist.
 

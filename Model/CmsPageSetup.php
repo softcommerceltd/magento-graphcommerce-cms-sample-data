@@ -14,6 +14,8 @@ use Magento\Cms\Model\ResourceModel\Page as ResourcePage;
 use Magento\Cms\Model\ResourceModel\Page\Collection;
 use Magento\Cms\Model\ResourceModel\Page\CollectionFactory;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Setup\SampleData\Context;
 use Magento\Store\Model\StoreManagerInterface;
 use function array_combine;
@@ -74,10 +76,6 @@ class CmsPageSetup extends AbstractModel
      */
     public function install(array $fixtures): void
     {
-        $writer = new \Zend_Log_Writer_Stream(BP . '/var/log/dev.log');
-        $logger = new \Zend_Log();
-        $logger->addWriter($writer);
-
         foreach ($fixtures as $fileName) {
             $fileName = $this->fixtureManager->getFixture($fileName);
             if (!file_exists($fileName)) {
@@ -106,12 +104,6 @@ class CmsPageSetup extends AbstractModel
                 $page->addData($row);
                 $page->setCustomLayoutUpdateXml(null);
                 $page->setStores([$storeId]);
-
-                $logger->debug(print_r([
-                    '$storeId' => $storeId,
-                    '$row' => $row,
-                    'page' => $page->getData()
-                ], true), []);
 
                 $this->resource->save($page);
             }

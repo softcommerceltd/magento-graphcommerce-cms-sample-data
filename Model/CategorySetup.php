@@ -10,14 +10,11 @@ namespace SoftCommerce\GraphCommerceCmsSampleData\Model;
 
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Model\ResourceModel\Category as CategoryResource;
-use Magento\CatalogUrlRewrite\Model\CategoryUrlRewriteGenerator;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Setup\SampleData\Context;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\UrlRewrite\Model\UrlFinderInterface;
-use Magento\UrlRewrite\Service\V1\Data\UrlRewrite;
 use Psr\Log\LoggerInterface;
 use SoftCommerce\Core\Model\Store\WebsiteStorageInterface;
 use function array_combine;
@@ -25,6 +22,10 @@ use function array_keys;
 use function array_shift;
 use function file_exists;
 
+/**
+ * Class CategorySetup
+ * used to setup sample data for category entity.
+ */
 class CategorySetup extends AbstractModel
 {
     /**
@@ -43,11 +44,6 @@ class CategorySetup extends AbstractModel
     private LoggerInterface $logger;
 
     /**
-     * @var UrlFinderInterface
-     */
-    private UrlFinderInterface $urlFinder;
-
-    /**
      * @var WebsiteStorageInterface
      */
     private WebsiteStorageInterface $websiteStorage;
@@ -56,7 +52,6 @@ class CategorySetup extends AbstractModel
      * @param CategoryRepositoryInterface $categoryRepository
      * @param CategoryResource $categoryResource
      * @param LoggerInterface $logger
-     * @param UrlFinderInterface $urlFinder
      * @param WebsiteStorageInterface $websiteStorage
      * @param ResourceConnection $resourceConnection
      * @param Context $sampleDataContext
@@ -66,7 +61,6 @@ class CategorySetup extends AbstractModel
         CategoryRepositoryInterface $categoryRepository,
         CategoryResource $categoryResource,
         LoggerInterface $logger,
-        UrlFinderInterface $urlFinder,
         WebsiteStorageInterface $websiteStorage,
         ResourceConnection $resourceConnection,
         Context $sampleDataContext,
@@ -75,7 +69,6 @@ class CategorySetup extends AbstractModel
         $this->categoryRepository = $categoryRepository;
         $this->categoryResource = $categoryResource;
         $this->logger = $logger;
-        $this->urlFinder = $urlFinder;
         $this->websiteStorage = $websiteStorage;
         parent::__construct($resourceConnection, $sampleDataContext, $storeManager);
     }
@@ -108,7 +101,11 @@ class CategorySetup extends AbstractModel
                     continue;
                 }
 
-                if (!$categoryId = $this->getCategoryIdByUrl($row['url_key'], $storeId)) {
+                if ($storeId === 0) {
+                    $storeId = $this->websiteStorage->getDefaultStoreId();
+                }
+
+                if (!$categoryId = $this->getCategoryIdByUrlKey($row['url_key'])) {
                     continue;
                 }
 
@@ -136,25 +133,24 @@ class CategorySetup extends AbstractModel
     }
 
     /**
-     * @param string $categoryUrl
-     * @param int $storeId
-     * @return int
+     * @param string $urlKey
+     * @return int|null
      */
-    private function getCategoryIdByUrl(string $categoryUrl, int $storeId): int
+    private function getCategoryIdByUrlKey(string $urlKey): ?int
     {
-        if ($storeId === 0) {
-            $storeId = $this->websiteStorage->getDefaultStoreId();
-        }
+        $select = $this->connection->select()
+            ->from(
+                ['ccev' => $this->connection->getTableName('catalog_category_entity_varchar')],
+                'entity_id'
+            )
+            ->joinLeft(
+                ['ea' => 'eav_attribute'],
+                'ea.attribute_id = ccev.attribute_id'
+            )
+            ->where('ccev.value = ?', $urlKey)
+            ->where('ccev.store_id = ?', 0)
+            ->where('ea.attribute_code = ?', 'url_key');
 
-        $result = $this->urlFinder->findOneByData(
-            [
-                UrlRewrite::STORE_ID => $storeId,
-                UrlRewrite::REQUEST_PATH => $categoryUrl,
-                UrlRewrite::ENTITY_TYPE => CategoryUrlRewriteGenerator::ENTITY_TYPE,
-                UrlRewrite::REDIRECT_TYPE => 0
-            ]
-        );
-
-        return (int) $result?->getEntityId();
+        return ((int) $this->connection->fetchOne($select)) ?: null;
     }
 }
