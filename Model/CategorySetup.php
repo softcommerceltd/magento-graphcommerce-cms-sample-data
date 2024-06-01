@@ -8,17 +8,13 @@ declare(strict_types=1);
 
 namespace SoftCommerce\GraphCommerceCmsSampleData\Model;
 
-use Magento\Catalog\Api\CategoryRepositoryInterface;
-use Magento\Catalog\Model\ResourceModel\Category as CategoryResource;
+use Magento\Catalog\Api\Data\CategoryInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Setup\SampleData\Context;
 use Magento\Store\Model\StoreManagerInterface;
-use Psr\Log\LoggerInterface;
-use SoftCommerce\Core\Model\Store\WebsiteStorageInterface;
+use SoftCommerce\Core\Model\Utils\GetEntityMetadataInterface;
 use function array_combine;
-use function array_keys;
 use function array_shift;
 use function file_exists;
 
@@ -29,47 +25,33 @@ use function file_exists;
 class CategorySetup extends AbstractModel
 {
     /**
-     * @var CategoryRepositoryInterface
+     * @var GetEntityMetadataInterface
      */
-    private CategoryRepositoryInterface $categoryRepository;
+    private GetEntityMetadataInterface $getEntityMetadata;
 
     /**
-     * @var CategoryResource
+     * @var array
      */
-    private CategoryResource $categoryResource;
+    private array $attributeInMemory = [];
 
     /**
-     * @var LoggerInterface
+     * @var array
      */
-    private LoggerInterface $logger;
+    private array $tableInMemory = [];
 
     /**
-     * @var WebsiteStorageInterface
-     */
-    private WebsiteStorageInterface $websiteStorage;
-
-    /**
-     * @param CategoryRepositoryInterface $categoryRepository
-     * @param CategoryResource $categoryResource
-     * @param LoggerInterface $logger
-     * @param WebsiteStorageInterface $websiteStorage
+     * @param GetEntityMetadataInterface $getEntityMetadata
      * @param ResourceConnection $resourceConnection
      * @param Context $sampleDataContext
      * @param StoreManagerInterface $storeManager
      */
     public function __construct(
-        CategoryRepositoryInterface $categoryRepository,
-        CategoryResource $categoryResource,
-        LoggerInterface $logger,
-        WebsiteStorageInterface $websiteStorage,
+        GetEntityMetadataInterface $getEntityMetadata,
         ResourceConnection $resourceConnection,
         Context $sampleDataContext,
         StoreManagerInterface $storeManager
     ) {
-        $this->categoryRepository = $categoryRepository;
-        $this->categoryResource = $categoryResource;
-        $this->logger = $logger;
-        $this->websiteStorage = $websiteStorage;
+        $this->getEntityMetadata = $getEntityMetadata;
         parent::__construct($resourceConnection, $sampleDataContext, $storeManager);
     }
 
@@ -80,56 +62,70 @@ class CategorySetup extends AbstractModel
      */
     public function install(array $fixtures): void
     {
-        foreach ($fixtures as $fileName) {
-            $fileName = $this->fixtureManager->getFixture($fileName);
-            if (!file_exists($fileName)) {
+        $fileName = $this->fixtureManager->getFixture(current($fixtures) ?: '');
+        if (!file_exists($fileName)) {
+            return;
+        }
+
+        $rows = $this->csvReader->getData($fileName);
+        $header = array_shift($rows);
+        $linkField = $this->getEntityMetadata->getLinkField(CategoryInterface::class);
+        $saveRequest = [];
+
+        foreach ($rows as $row) {
+            $row = array_combine($header, $row);
+
+            if (!isset($row['store_code'], $row['url_key'])) {
                 continue;
             }
 
-            $rows = $this->csvReader->getData($fileName);
-            $header = array_shift($rows);
+            $storeId = $this->getStoreIdByCode($row['store_code']);
+            if (null === $storeId) {
+                continue;
+            }
 
-            foreach ($rows as $row) {
-                $row = array_combine($header, $row);
+            if (!$categoryId = $this->getCategoryIdByUrlKey($row['url_key'])) {
+                continue;
+            }
 
-                if (!isset($row['store_code'], $row['url_key'])) {
-                    continue;
-                }
+            unset($row['store_code']);
+            unset($row['url_key']);
 
-                $storeId = $this->getStoreIdByCode($row['store_code']);
-                if (null === $storeId) {
-                    continue;
-                }
+            foreach ($row as $attributeCode => $attributeValue) {
+                $attribute = $this->getAttributeByCode($attributeCode);
+                $attributeId = $attribute['attribute_id'] ?? null;
+                $attributeType = $attribute['backend_type'] ?? null;
 
-                if ($storeId === 0) {
-                    $storeId = $this->websiteStorage->getDefaultStoreId();
-                }
-
-                if (!$categoryId = $this->getCategoryIdByUrlKey($row['url_key'])) {
-                    continue;
-                }
-
-                try {
-                    $category = $this->categoryRepository->get($categoryId, $storeId);
-                } catch (NoSuchEntityException $e) {
-                    $this->logger->critical($e->getMessage());
-                    continue;
-                }
-
-                unset($row['store_code']);
-                unset($row['url_key']);
-
-                $category->addData($row);
-
-                foreach (array_keys($row) as $attributeCode) {
-                    try {
-                        $this->categoryResource->saveAttribute($category, $attributeCode);
-                    } catch (\Exception $e) {
-                        $this->logger->critical($e->getMessage());
-                    }
+                if ($attributeId && $attributeType && $entityTable = $this->getEntityTable($attributeType)) {
+                    $saveRequest[$entityTable][] = [
+                        $linkField => $categoryId,
+                        'attribute_id' => $attributeId,
+                        'store_id' => $storeId,
+                        'value' => $attributeValue
+                    ];
                 }
             }
         }
+
+        foreach ($saveRequest as $tableName => $data) {
+            $this->connection->insertOnDuplicate($tableName, $data);
+        }
+    }
+
+    /**
+     * @param string $code
+     * @return array
+     */
+    private function getAttributeByCode(string $code): array
+    {
+        if (!isset($this->attributeInMemory[$code])) {
+            $select = $this->connection->select()
+                ->from($this->connection->getTableName('eav_attribute'), ['attribute_id', 'backend_type'])
+                ->where('attribute_code = ?', $code);
+            $this->attributeInMemory[$code] = $this->connection->fetchRow($select);
+        }
+
+        return $this->attributeInMemory[$code] ?? [];
     }
 
     /**
@@ -152,5 +148,27 @@ class CategorySetup extends AbstractModel
             ->where('ea.attribute_code = ?', 'url_key');
 
         return ((int) $this->connection->fetchOne($select)) ?: null;
+    }
+
+    /**
+     * @param string $tableTypeId
+     * @return string|null
+     */
+    private function getEntityTable(string $tableTypeId): ?string
+    {
+        $entityTable = "catalog_category_entity_$tableTypeId";
+
+        if (isset($this->tableInMemory[$entityTable])) {
+            return $entityTable;
+        }
+
+        if ($this->connection->isTableExists(
+            $this->connection->getTableName($entityTable)
+        )) {
+            $this->tableInMemory[$entityTable] = $entityTable;
+            return $entityTable;
+        }
+
+        return null;
     }
 }

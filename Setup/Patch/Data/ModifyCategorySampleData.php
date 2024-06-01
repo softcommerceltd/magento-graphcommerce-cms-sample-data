@@ -11,59 +11,31 @@ namespace SoftCommerce\GraphCommerceCmsSampleData\Setup\Patch\Data;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchVersionInterface;
-use Magento\Framework\Setup\SampleData\Executor;
 use SoftCommerce\GraphCommerceCms\Setup\Patch\Data\InstallCategoryRowContentAttribute;
-use SoftCommerce\GraphCommerceCmsSampleData\Setup\Installer;
 
 /**
- * Class InstallCategorySampleData
- * used to install category sample data.
+ * Class ModifyCategorySampleData
+ * used to modify category sample data.
  */
-class InstallCategorySampleData implements DataPatchInterface, PatchVersionInterface
+class ModifyCategorySampleData implements DataPatchInterface, PatchVersionInterface
 {
-    /**
-     * @var Executor
-     */
-    private Executor $executor;
-
-    /**
-     * @var Installer
-     */
-    private Installer $installer;
-
     /**
      * @var ModuleDataSetupInterface
      */
     private ModuleDataSetupInterface $moduleDataSetup;
 
     /**
-     * @param Executor $executor
-     * @param Installer $installer
      * @param ModuleDataSetupInterface $moduleDataSetup
      */
-    public function __construct(
-        Executor $executor,
-        Installer $installer,
-        ModuleDataSetupInterface $moduleDataSetup
-    ) {
-        $this->executor = $executor;
-        $this->installer = $installer;
+    public function __construct(ModuleDataSetupInterface $moduleDataSetup)
+    {
         $this->moduleDataSetup = $moduleDataSetup;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function apply(): void
-    {
-        $this->executor->exec($this->installer);
-        $this->modifyCategoryData();
-    }
-
-    /**
-     * @return void
-     */
-    private function modifyCategoryData(): void
     {
         $connection = $this->moduleDataSetup->getConnection();
 
@@ -111,18 +83,18 @@ class InstallCategorySampleData implements DataPatchInterface, PatchVersionInter
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public static function getDependencies(): array
     {
         return [
-            InstallSampleStores::class,
+            InstallPageBuilderContentSampleData::class,
             InstallCategoryRowContentAttribute::class
         ];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public static function getVersion(): string
     {
@@ -130,7 +102,7 @@ class InstallCategorySampleData implements DataPatchInterface, PatchVersionInter
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getAliases(): array
     {

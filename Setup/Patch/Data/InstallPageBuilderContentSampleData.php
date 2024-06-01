@@ -9,16 +9,18 @@ declare(strict_types=1);
 namespace SoftCommerce\GraphCommerceCmsSampleData\Setup\Patch\Data;
 
 
+use Magento\CmsSampleData\Setup\Patch\Data\InstallCmsSampleData;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchVersionInterface;
 use Magento\Framework\Setup\SampleData\Executor;
+use SoftCommerce\GraphCommerceCms\Setup\Patch\Data\InstallCategoryRowContentAttribute;
 use SoftCommerce\GraphCommerceCmsSampleData\Setup\Installer;
 
 /**
- * Class InstallMediaAssetSampleData
- * used to install media asset sample data.
+ * Class InstallPageBuilderContentSampleData
+ * used to install pagebuilder sample data.
  */
-class InstallMediaAssetSampleData implements DataPatchInterface, PatchVersionInterface
+class InstallPageBuilderContentSampleData implements DataPatchInterface, PatchVersionInterface
 {
     /**
      * @var Executor
@@ -55,7 +57,11 @@ class InstallMediaAssetSampleData implements DataPatchInterface, PatchVersionInt
      */
     public static function getDependencies(): array
     {
-        return [];
+        return [
+            InstallSampleStores::class,
+            InstallCmsSampleData::class,
+            InstallCategoryRowContentAttribute::class
+        ];
     }
 
     /**

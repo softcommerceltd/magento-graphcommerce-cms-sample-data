@@ -1,5 +1,8 @@
 ## Changelog
 
+### Version 1.0.5
+- **Fix**: Apply a fix to category `description` and `gc_metadata` attribute data setup.
+
 ### Version 1.0.4
 - **Enhancement**: Add German translation for CMS Pages [#2]
 
